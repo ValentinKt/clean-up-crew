@@ -6,7 +6,7 @@ const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 if (!API_KEY) {
   // In a real app, you would handle this more gracefully.
   // For this context, we assume the API key is provided via environment variables.
-  console.warn("Gemini API key not found. AI features will be disabled.");
+  // Gemini API key not found. AI features will be disabled.
 }
 
 const ai = new GoogleGenAI({ apiKey: API_KEY! });

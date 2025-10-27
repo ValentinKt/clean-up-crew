@@ -7,8 +7,7 @@ const callRpc = async <T>(functionName: string, params: object): Promise<T> => {
     if (error) {
         console.error(`Error calling RPC ${functionName}:`, error);
         // If RPC function doesn't exist, return appropriate fallback
-        if (error.code === '42883' || error.message?.includes('function') || error.message?.includes('does not exist')) {
-            console.warn(`RPC function ${functionName} not found, returning fallback data`);
+        if (error.code === '42883' || error.message?.includes('function') || error.message?.includes('does not exist') || error.message?.includes('Could not find the function')) {
             return (functionName === 'get_events_for_user' ? [] : null) as T;
         }
         throw error;
@@ -17,12 +16,7 @@ const callRpc = async <T>(functionName: string, params: object): Promise<T> => {
 };
 
 export const getEventsForUser = async (userId: string): Promise<Event[]> => {
-    try {
-        return await callRpc<Event[]>('get_events_for_user', { p_user_id: userId });
-    } catch (error) {
-        console.warn('RPC function not available, returning empty events array');
-        return [];
-    }
+    return callRpc<Event[]>('get_events_for_user', { user_id: userId });
 };
 
 export const getEventById = async (id: string): Promise<Event | undefined> => {

@@ -22,7 +22,6 @@ const AppContent: React.FC = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('Auth state changed:', _event, session?.user?.id);
       setIsLoading(true);
       
       if (session?.user) {
@@ -31,8 +30,7 @@ const AppContent: React.FC = () => {
           if (profile) {
             setCurrentUser(profile);
           } else {
-            // If profile fetch fails, create a basic user from auth data
-            console.warn('Profile not found, using auth data');
+            // Profile not found, using auth data
             setCurrentUser({
               id: session.user.id,
               email: session.user.email || '',

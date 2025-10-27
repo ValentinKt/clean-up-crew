@@ -33,7 +33,6 @@ export const getPublicProfile = async (userId: string): Promise<User | null> => 
             console.error('Error fetching user profile:', error);
             // If the table doesn't exist or schema issue, return a basic user object
             if (error.code === 'PGRST106' || error.code === '42P01') {
-                console.warn('Users table not accessible, creating basic profile from auth data');
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user && user.id === userId) {
                     return {
