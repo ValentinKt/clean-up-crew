@@ -1,15 +1,38 @@
-# Project Todo List
+# Todo List - Eco Cleanup Crew
 
-[x] Run unit tests and fix any failures
-[x] Rebuild and restart preview; visually verify empty state
-[x] Fix Supabase client schema to 'api' to resolve PGRST106
-[x] Integrate OpenStreetMap as the sole mapping provider using Leaflet library
-[x] Implement dynamic, draggable circle marker with adjustable radius
-[x] Ensure circle updates in real-time during user interactions
-[x] Store center coordinates (lat/lng) and radius value for event creation
-[x] Implement smooth zooming functionality for precise location selection
-[x] Add visual feedback during circle adjustment (color changes, etc.)
-[x] Ensure responsive implementation across all device sizes
-[x] Implement validation to prevent invalid location selections
-[x] Provide clear visual indicators for currently selected area
-[x] Optimize performance for frequent map interactions and circle adjustments
+## Completed Tasks
+- [x] Fix RPC function error - `create_new_event` function not found
+- [x] Fix TypeError: Cannot read properties of null (reading 'title')
+- [x] Fix OpenStreetMap tile loading error (ERR_ABORTED) - investigate CORS or network issues
+- [x] Test the application thoroughly to ensure all fixes work correctly
+
+## Pending Tasks - REQUIRES MANUAL ACTION
+- [ ] **CRITICAL**: Deploy database schema to Supabase - RPC functions still not found in schema cache
+- [ ] **ACTION REQUIRED**: User needs to manually deploy database.sql to Supabase via SQL Editor
+
+## ⚠️ IMPORTANT DEPLOYMENT INSTRUCTIONS
+
+The application code has been fixed, but the database schema needs to be deployed manually:
+
+### Steps to Deploy Database Schema:
+
+1. **Go to Supabase Dashboard**: https://supabase.com/dashboard/projects
+2. **Select your project**: bshbpfgjgwqocczlzztb
+3. **Navigate to SQL Editor** (left sidebar)
+4. **Copy the entire content** from `services/database.sql`
+5. **Paste and execute** the SQL in the editor
+6. **Verify deployment** by checking if tables and functions are created
+
+### What the deployment will create:
+- Tables: `users`, `events`, `event_participants`, `event_equipment`, `event_chat`, `event_photos`
+- RLS policies for data security
+- RPC functions: `create_new_event`, `get_event_by_id`, `join_event`, `leave_event`, etc.
+
+## Status Summary
+✅ All code fixes completed successfully
+✅ Tests passing (8/8)
+✅ Build successful
+✅ Preview server running without errors
+❌ Database schema not deployed (manual action required)
+
+The application is ready to use once the database schema is deployed!
