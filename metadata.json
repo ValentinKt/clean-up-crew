@@ -1,0 +1,5 @@
+{
+  "name": "Eco-Cleanup Crew",
+  "description": "A collaborative web application for creating and organizing environmental cleanup events. Users can create, join, and manage local cleanups, chat with participants, and document their impact.",
+  "requestFramePermissions": []
+}
