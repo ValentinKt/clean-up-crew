@@ -198,6 +198,22 @@ const AppContent: React.FC = () => {
           onEventUpdate={handleEventUpdate}
           onViewProfile={handleViewUserProfile}
         />;
+      } else {
+        // Event not found - show error and go back to list
+        return (
+          <div className="text-center py-8">
+            <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-6 max-w-md mx-auto">
+              <h2 className="text-lg font-semibold mb-2">Event Not Found</h2>
+              <p className="mb-4">The event you're looking for could not be found or may have been deleted.</p>
+              <button
+                onClick={handleBackToList}
+                className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors"
+              >
+                Back to Events
+              </button>
+            </div>
+          </div>
+        );
       }
     }
     

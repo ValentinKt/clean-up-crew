@@ -116,7 +116,8 @@ const MapPicker: React.FC<MapPickerProps> = ({ initialLocation, onLocationChange
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
                 maxZoom: 19,
-                minZoom: 3
+                minZoom: 3,
+                crossOrigin: true
             }).addTo(map);
             
             // Create draggable marker
