@@ -6,8 +6,19 @@
 - [x] Fix OpenStreetMap tile loading error (ERR_ABORTED) - investigate CORS or network issues
 - [x] Test the application thoroughly to ensure all fixes work correctly
 - [x] Clean up console logs - Remove excessive console.log and console.warn statements
+- [x] Split EventDetail.tsx into smaller components and extract realtime logic into custom hook
 
-## Current Task: Add 5 New Users and 5 New Events
+## Current Task: Continue Code Refactoring
+
+### In Progress Tasks
+- [ ] Extract filtering logic from EventList.tsx into useEventFilters custom hook
+
+### Pending Tasks
+- [ ] Extract form validation logic from CreateEventForm and EditEventForm into useFormValidation hook
+- [ ] Create reusable UI components (Button, Input, Modal, Card) to reduce code duplication
+- [ ] Extract map initialization logic from MapPicker and MapView into useMap custom hook
+
+## Previous Task: Add 5 New Users and 5 New Events
 
 ### Pending Tasks - REQUIRES MANUAL ACTION FIRST
 - [ ] **CRITICAL**: Deploy database schema to Supabase (REQUIRED BEFORE ADDING DATA)
@@ -48,6 +59,7 @@ Once database is deployed, run these scripts:
 ✅ Preview server running without errors
 ✅ Console logs cleaned up
 ✅ Data insertion scripts prepared
+✅ EventDetail.tsx refactored into smaller components with custom hooks
 ❌ Database schema not deployed (manual action required)
 
-**Next Step**: Deploy database schema, then run the prepared scripts to add users and events!
+**Next Step**: Continue with code refactoring tasks or deploy database schema to add users and events!
