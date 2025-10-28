@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { Event, User, EventStatus } from '../types';
 import EventCard from './EventCard';
+import { useEventFilters } from '../hooks/useEventFilters';
 
 interface EventListProps {
   events: Event[];
@@ -10,101 +11,33 @@ interface EventListProps {
 }
 
 const allStatuses = Object.values(EventStatus);
-const MAX_DISTANCE = 25; // max distance in km
+const MAX_DISTANCE = 50; // km
+const PAGE_SIZE = 6;
 
 const EventList: React.FC<EventListProps> = ({ events, onSelectEvent, currentUser, onCreateEvent }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dateRange, setDateRange] = useState({ start: '', end: '' });
-  const [selectedStatuses, setSelectedStatuses] = useState<Set<EventStatus>>(new Set());
-  const [distanceFilter, setDistanceFilter] = useState(MAX_DISTANCE);
-  const [upcomingPage, setUpcomingPage] = useState(1);
-  const [otherPage, setOtherPage] = useState(1);
-  const PAGE_SIZE = 6;
-
-  const handleStatusChange = (status: EventStatus) => {
-    setSelectedStatuses(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(status)) {
-        newSet.delete(status);
-      } else {
-        newSet.add(status);
-      }
-      return newSet;
-    });
-  };
-
-  const resetFilters = () => {
-    setSearchTerm('');
-    setDateRange({ start: '', end: '' });
-    setSelectedStatuses(new Set());
-    setDistanceFilter(MAX_DISTANCE);
-  };
-
-  const filteredEvents = useMemo(() => {
-    const lowerCaseSearchTerm = searchTerm.toLowerCase();
-    const startDate = dateRange.start ? new Date(dateRange.start) : null;
-    // Set end date to the end of the day for inclusive filtering
-    const endDate = dateRange.end ? new Date(dateRange.end) : null;
-    if (endDate) endDate.setHours(23, 59, 59, 999);
-
-    return events.filter(event => {
-      // Search term filter
-      if (searchTerm &&
-          !event.title.toLowerCase().includes(lowerCaseSearchTerm) &&
-          !event.location.address.toLowerCase().includes(lowerCaseSearchTerm)
-      ) {
-        return false;
-      }
-
-      // Date range filter
-      const eventDate = new Date(event.date);
-      if (startDate && eventDate < startDate) {
-        return false;
-      }
-      if (endDate && eventDate > endDate) {
-        return false;
-      }
-
-      // Status filter
-      if (selectedStatuses.size > 0 && !selectedStatuses.has(event.status)) {
-        return false;
-      }
-      
-      // Distance filter
-      if (event.distance > distanceFilter) {
-          return false;
-      }
-
-      return true;
-    });
-  }, [events, searchTerm, dateRange, selectedStatuses, distanceFilter]);
-  
-  const upcomingEvents = useMemo(() => {
-    return filteredEvents
-      .filter(event => event.status === EventStatus.Upcoming)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [filteredEvents]);
-
-  const otherEvents = useMemo(() => {
-    return filteredEvents
-      .filter(event => event.status !== EventStatus.Upcoming)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [filteredEvents]);
-
-  const pagedUpcoming = useMemo(() => {
-    const start = (upcomingPage - 1) * PAGE_SIZE;
-    return upcomingEvents.slice(start, start + PAGE_SIZE);
-  }, [upcomingEvents, upcomingPage]);
-
-  const pagedOther = useMemo(() => {
-    const start = (otherPage - 1) * PAGE_SIZE;
-    return otherEvents.slice(start, start + PAGE_SIZE);
-  }, [otherEvents, otherPage]);
-
-  const upcomingTotalPages = Math.max(1, Math.ceil(upcomingEvents.length / PAGE_SIZE));
-  const otherTotalPages = Math.max(1, Math.ceil(otherEvents.length / PAGE_SIZE));
-
-  const hasActiveFilters = searchTerm || dateRange.start || dateRange.end || selectedStatuses.size > 0 || distanceFilter < MAX_DISTANCE;
+  const {
+    searchTerm,
+    setSearchTerm,
+    dateRange,
+    setDateRange,
+    selectedStatuses,
+    distanceFilter,
+    setDistanceFilter,
+    upcomingPage,
+    setUpcomingPage,
+    otherPage,
+    setOtherPage,
+    filteredEvents,
+    upcomingEvents,
+    otherEvents,
+    pagedUpcoming,
+    pagedOther,
+    upcomingTotalPages,
+    otherTotalPages,
+    hasActiveFilters,
+    handleStatusChange,
+    resetFilters,
+  } = useEventFilters({ events, maxDistance: MAX_DISTANCE, pageSize: PAGE_SIZE });
 
   return (
     <div>
@@ -211,14 +144,14 @@ const EventList: React.FC<EventListProps> = ({ events, onSelectEvent, currentUse
                 <button
                   aria-label="Previous page"
                   disabled={upcomingPage === 1}
-                  onClick={() => setUpcomingPage(p => Math.max(1, p - 1))}
+                  onClick={() => setUpcomingPage(Math.max(1, upcomingPage - 1))}
                   className="px-3 py-1 border rounded disabled:opacity-50"
                 >Prev</button>
                 <span className="text-sm text-gray-600">Page {upcomingPage} of {upcomingTotalPages}</span>
                 <button
                   aria-label="Next page"
                   disabled={upcomingPage >= upcomingTotalPages}
-                  onClick={() => setUpcomingPage(p => Math.min(upcomingTotalPages, p + 1))}
+                  onClick={() => setUpcomingPage(Math.min(upcomingTotalPages, upcomingPage + 1))}
                   className="px-3 py-1 border rounded disabled:opacity-50"
                 >Next</button>
               </div>
@@ -243,14 +176,14 @@ const EventList: React.FC<EventListProps> = ({ events, onSelectEvent, currentUse
                 <button
                   aria-label="Previous page"
                   disabled={otherPage === 1}
-                  onClick={() => setOtherPage(p => Math.max(1, p - 1))}
+                  onClick={() => setOtherPage(Math.max(1, otherPage - 1))}
                   className="px-3 py-1 border rounded disabled:opacity-50"
                 >Prev</button>
                 <span className="text-sm text-gray-600">Page {otherPage} of {otherTotalPages}</span>
                 <button
                   aria-label="Next page"
                   disabled={otherPage >= otherTotalPages}
-                  onClick={() => setOtherPage(p => Math.min(otherTotalPages, p + 1))}
+                  onClick={() => setOtherPage(Math.min(otherTotalPages, otherPage + 1))}
                   className="px-3 py-1 border rounded disabled:opacity-50"
                 >Next</button>
               </div>

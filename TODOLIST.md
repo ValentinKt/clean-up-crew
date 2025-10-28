@@ -7,14 +7,14 @@
 - [x] Test the application thoroughly to ensure all fixes work correctly
 - [x] Clean up console logs - Remove excessive console.log and console.warn statements
 - [x] Split EventDetail.tsx into smaller components and extract realtime logic into custom hook
+- [x] Extract filtering logic from EventList.tsx into useEventFilters custom hook
 
 ## Current Task: Continue Code Refactoring
 
 ### In Progress Tasks
-- [ ] Extract filtering logic from EventList.tsx into useEventFilters custom hook
+- [ ] Extract form validation logic from CreateEventForm and EditEventForm into useFormValidation hook
 
 ### Pending Tasks
-- [ ] Extract form validation logic from CreateEventForm and EditEventForm into useFormValidation hook
 - [ ] Create reusable UI components (Button, Input, Modal, Card) to reduce code duplication
 - [ ] Extract map initialization logic from MapPicker and MapView into useMap custom hook
 
@@ -60,6 +60,7 @@ Once database is deployed, run these scripts:
 ✅ Console logs cleaned up
 ✅ Data insertion scripts prepared
 ✅ EventDetail.tsx refactored into smaller components with custom hooks
+✅ EventList.tsx filtering logic extracted into useEventFilters hook
 ❌ Database schema not deployed (manual action required)
 
 **Next Step**: Continue with code refactoring tasks or deploy database schema to add users and events!
