@@ -10,7 +10,7 @@
 [x] Add mobile/touch device compatibility
 [x] Handle edge cases and accessibility standards
 [x] Test enhanced MapPicker functionality and commit changes
-[ ] Create unit tests for interactive map features
+[x] Create unit tests for interactive map features
 
 ## Completed Features
 
