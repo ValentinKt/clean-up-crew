@@ -1,65 +1,29 @@
 # Todo List - Eco Cleanup Crew
 
-## Completed Tasks
-- [x] Fix RPC function error - `create_new_event` function not found
-- [x] Fix TypeError: Cannot read properties of null (reading 'title')
-- [x] Fix OpenStreetMap tile loading error (ERR_ABORTED) - investigate CORS or network issues
-- [x] Test the application thoroughly to ensure all fixes work correctly
-- [x] Clean up console logs - Remove excessive console.log and console.warn statements
-- [x] Split EventDetail.tsx into smaller components and extract realtime logic into custom hook
-- [x] Extract filtering logic from EventList.tsx into useEventFilters custom hook
-- [x] Extract form validation logic from CreateEventForm and EditEventForm into useFormValidation hook
+## MapPicker Enhancement Tasks
 
-## Current Task: Continue Code Refactoring
+[x] Examine current MapPicker component structure and dependencies
+[x] Implement click event handling on map surface to capture coordinates
+[x] Add visual marker/pin for selected location on map
+[x] Update location input field to be disabled and auto-populate from map selection
+[x] Ensure two-way binding and proper event emission for location changes
+[x] Add mobile/touch device compatibility
+[x] Handle edge cases and accessibility standards
+[x] Test enhanced MapPicker functionality and commit changes
+[ ] Create unit tests for interactive map features
 
-### Pending Tasks
-- [ ] Create reusable UI components (Button, Input, Modal, Card) to reduce code duplication
-- [ ] Extract map initialization logic from MapPicker and MapView into useMap custom hook
+## Completed Features
 
-## Previous Task: Add 5 New Users and 5 New Events
+✅ **Interactive Map Selection**: Users can now click anywhere on the map to set the event location
+✅ **Visual Feedback**: Circle style changes temporarily when a location is selected
+✅ **Coordinate Display**: Disabled input field shows user-friendly coordinates (latitude, longitude)
+✅ **Mobile Compatibility**: Enhanced touch handling and responsive design
+✅ **Accessibility**: ARIA labels, keyboard navigation, and screen reader support
+✅ **Error Handling**: Robust handling of invalid coordinates and network errors
+✅ **Two-way Binding**: Proper state management and event emission
 
-### Pending Tasks - REQUIRES MANUAL ACTION FIRST
-- [ ] **CRITICAL**: Deploy database schema to Supabase (REQUIRED BEFORE ADDING DATA)
-- [ ] Create 5 new users with realistic data (script ready: `scripts/test-connection.js`)
-- [ ] Create 5 new events with realistic data (scripts ready: `scripts/test-connection.js` + `scripts/add-more-events.js`)
-- [ ] Test the application with new users and events
-- [ ] Fix any issues that arise during testing
+## Next Steps
 
-## ⚠️ IMPORTANT: Database Schema Must Be Deployed First
-
-**Current Status**: Cannot add users/events because database schema is not deployed.
-
-### Steps to Deploy Database Schema:
-
-1. **Go to Supabase Dashboard**: https://supabase.com/dashboard/projects
-2. **Select your project**: bshbpfgjgwqocczlzztb
-3. **Navigate to SQL Editor** (left sidebar)
-4. **Copy the entire content** from `database.sql`
-5. **Paste and execute** the SQL in the editor
-6. **Verify deployment** by checking if tables and functions are created
-
-### What the deployment will create:
-- Tables: `users`, `events`, `event_participants`, `event_equipment`, `event_chat`, `event_photos`
-- RLS policies for data security
-- RPC functions: `create_new_event`, `get_event_by_id`, `join_event`, `leave_event`, etc.
-
-## Scripts Ready for Data Insertion
-
-Once database is deployed, run these scripts:
-
-1. **Add 5 users + 2 events**: `node scripts/test-connection.js`
-2. **Add 3 more events**: `node scripts/add-more-events.js`
-
-## Status Summary
-✅ All code fixes completed successfully
-✅ Tests passing (8/8)
-✅ Build successful
-✅ Preview server running without errors
-✅ Console logs cleaned up
-✅ Data insertion scripts prepared
-✅ EventDetail.tsx refactored into smaller components with custom hooks
-✅ EventList.tsx filtering logic extracted into useEventFilters hook
-✅ Form validation logic extracted into useFormValidation hook
-❌ Database schema not deployed (manual action required)
-
-**Next Step**: Continue with code refactoring tasks or deploy database schema to add users and events!
+- [ ] Create comprehensive unit tests for the new interactive features
+- [ ] Consider adding location history/favorites functionality
+- [ ] Implement location validation against cleanup event requirements
