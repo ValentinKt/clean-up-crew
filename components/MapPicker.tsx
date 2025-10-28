@@ -27,16 +27,47 @@ const MapPicker: React.FC<MapPickerProps> = ({ initialLocation, onLocationChange
     const [isLoading, setIsLoading] = useState(false);
     const [radius, setRadius] = useState(initialLocation?.radius || 500); // Default 500m radius
     const [isDraggingCircle, setIsDraggingCircle] = useState(false);
-    
+    const [currentCoordinates, setCurrentCoordinates] = useState<{lat: number, lng: number} | null>(
+        initialLocation ? { lat: initialLocation.lat, lng: initialLocation.lng } : null
+    );
+
     // Default to a central location if no initial one is provided
     const initialCoords: [number, number] = initialLocation ? [initialLocation.lat, initialLocation.lng] : [51.505, -0.09];
 
+    // Helper functions for coordinate formatting
+    const formatCoordinates = (lat: number, lng: number): string => {
+        return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    };
+
+    // Helper function to get current coordinates for display
+    const getCurrentCoordinates = () => {
+        if (currentCoordinates) {
+            return formatCoordinates(currentCoordinates.lat, currentCoordinates.lng);
+        }
+        return 'Click on the map to select a location';
+    };
+
     const updateLocation = useCallback(async (lat: number, lng: number, newRadius?: number) => {
+        // Validate coordinates are within valid ranges
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+            console.error('Invalid coordinates:', { lat, lng });
+            setAddress('Invalid coordinates selected');
+            return;
+        }
+
         setIsLoading(true);
         const currentRadius = newRadius !== undefined ? newRadius : radius;
         
+        // Update coordinates state for UI display
+        setCurrentCoordinates({ lat, lng });
+        
         try {
             const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await response.json();
             const newAddress = data.display_name || 'Address not found';
             setAddress(newAddress);
@@ -54,7 +85,7 @@ const MapPicker: React.FC<MapPickerProps> = ({ initialLocation, onLocationChange
 
         } catch (error) {
             console.error('Reverse geocoding failed:', error);
-            setAddress('Could not fetch address.');
+            setAddress('Could not fetch address. Please check your internet connection.');
         } finally {
             setIsLoading(false);
         }
@@ -99,9 +130,20 @@ const MapPicker: React.FC<MapPickerProps> = ({ initialLocation, onLocationChange
         [updateCircle]
     );
 
+    // Update coordinates when initialLocation changes (for two-way binding)
     useEffect(() => {
+        if (initialLocation) {
+            setCurrentCoordinates({ lat: initialLocation.lat, lng: initialLocation.lng });
+            setRadius(initialLocation.radius || 500);
+            setAddress(initialLocation.address || 'Address not found');
+        }
+    }, [initialLocation]);
+
+    // Initialize map
+    useEffect(() => {
+
         if (mapContainerRef.current && !mapRef.current) {
-            // Initialize map with smooth zoom options
+            // Initialize map with mobile-optimized settings
             const map = L.map(mapContainerRef.current, {
                 zoomControl: true,
                 scrollWheelZoom: true,
@@ -109,7 +151,11 @@ const MapPicker: React.FC<MapPickerProps> = ({ initialLocation, onLocationChange
                 touchZoom: true,
                 zoomAnimation: true,
                 fadeAnimation: true,
-                markerZoomAnimation: true
+                markerZoomAnimation: true,
+                // Mobile/touch optimizations
+                tapTolerance: 15,
+                bounceAtZoomLimits: false,
+                maxBoundsViscosity: 0.3
             }).setView(initialCoords, 13);
 
             // Add OpenStreetMap tile layer
@@ -129,12 +175,39 @@ const MapPicker: React.FC<MapPickerProps> = ({ initialLocation, onLocationChange
             // Create draggable circle with visual feedback
             const circle = L.circle(initialCoords, {
                 radius: radius,
-                color: '#14b8a6', // Teal color
+                color: '#14b8a6',
                 fillColor: '#14b8a6',
                 fillOpacity: 0.2,
                 weight: 2,
                 opacity: 0.8
             }).addTo(map);
+
+            // Add click event handler to the map
+            map.on('click', (e: L.LeafletMouseEvent) => {
+                const { lat, lng } = e.latlng;
+                
+                // Update marker and circle position
+                marker.setLatLng([lat, lng]);
+                circle.setLatLng([lat, lng]);
+                
+                // Create resize handle at new position
+                createResizeHandle(L.latLng(lat, lng), circle.getRadius());
+                
+                // Update location data
+                updateLocation(lat, lng);
+                
+                // Provide visual feedback with temporary style change
+                const originalStyle = circle.options;
+                circle.setStyle({ 
+                    color: '#0d9488', 
+                    fillColor: '#0d9488',
+                    fillOpacity: 0.4 
+                });
+                
+                setTimeout(() => {
+                    circle.setStyle(originalStyle);
+                }, 300);
+            });
 
             // Make circle draggable and resizable
             let isResizing = false;
@@ -267,29 +340,44 @@ const MapPicker: React.FC<MapPickerProps> = ({ initialLocation, onLocationChange
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!searchQuery.trim()) return;
-        
+        if (!searchQuery.trim()) {
+            setAddress('Please enter a search term');
+            return;
+        }
+
         setIsLoading(true);
         try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1`);
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const data = await response.json();
-            if (data && data.length > 0) {
-                const { lat, lon: lng } = data[0];
-                const newLat = parseFloat(lat);
-                const newLng = parseFloat(lng);
+            
+            if (data.length > 0) {
+                const result = data[0];
+                const lat = parseFloat(result.lat);
+                const lng = parseFloat(result.lon);
+                
+                // Validate parsed coordinates
+                if (isNaN(lat) || isNaN(lng)) {
+                    throw new Error('Invalid coordinates received from search');
+                }
                 
                 if (mapRef.current && markerRef.current && circleRef.current) {
-                    mapRef.current.setView([newLat, newLng], 15);
-                    markerRef.current.setLatLng([newLat, newLng]);
-                    circleRef.current.setLatLng([newLat, newLng]);
-                    updateLocation(newLat, newLng);
+                    mapRef.current.setView([lat, lng], 15);
+                    markerRef.current.setLatLng([lat, lng]);
+                    circleRef.current.setLatLng([lat, lng]);
+                    updateCircle(L.latLng(lat, lng), radius);
+                    await updateLocation(lat, lng);
                 }
             } else {
-                setAddress(`Could not find "${searchQuery}". Please try again.`);
+                setAddress('Location not found. Please try a different search term.');
             }
         } catch (error) {
             console.error('Search failed:', error);
-            setAddress('Location search failed.');
+            setAddress('Search failed. Please check your internet connection and try again.');
         } finally {
             setIsLoading(false);
         }
@@ -335,8 +423,28 @@ const MapPicker: React.FC<MapPickerProps> = ({ initialLocation, onLocationChange
                 </button>
             </form>
 
+            {/* Coordinates Display Field */}
+            <div className="mb-4">
+                <label htmlFor="coordinates-display" className="block text-sm font-medium text-gray-700 mb-2">
+                    Selected Coordinates
+                </label>
+                <input
+                    id="coordinates-display"
+                    type="text"
+                    value={getCurrentCoordinates()}
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 text-sm"
+                    aria-label="Selected coordinates display"
+                    aria-describedby="coordinates-help"
+                    readOnly
+                />
+                <p id="coordinates-help" className="text-xs text-gray-500 mt-1">
+                    Coordinates are automatically updated when you click on the map or drag the marker
+                </p>
+            </div>
+
             {/* Radius Control */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 p-3 bg-gray-50 rounded-md">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 mb-4">
                 <label htmlFor="radius-slider" className="text-sm font-medium text-gray-700 whitespace-nowrap">
                     Event Radius:
                 </label>
@@ -350,19 +458,30 @@ const MapPicker: React.FC<MapPickerProps> = ({ initialLocation, onLocationChange
                         value={radius}
                         onChange={(e) => handleRadiusChange(parseInt(e.target.value))}
                         className="flex-grow h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                        aria-label={`Event radius: ${radius} meters`}
+                        aria-describedby="radius-help"
                     />
                     <span className="text-sm font-semibold text-teal-600 whitespace-nowrap min-w-[60px]">
                         {radius}m
                     </span>
                 </div>
+                <p id="radius-help" className="sr-only">
+                    Adjust the event coverage radius from 50 to 5000 meters
+                </p>
             </div>
 
             {/* Map Container */}
             <div className="relative">
                 <div 
                     ref={mapContainerRef} 
-                    className="h-64 sm:h-80 w-full rounded-md border border-gray-300 z-0"
-                    style={{ minHeight: '256px' }}
+                    className="h-64 sm:h-80 w-full rounded-md border border-gray-300 z-0 touch-manipulation"
+                    style={{ 
+                        minHeight: '256px',
+                        touchAction: 'pan-x pan-y'
+                    }}
+                    role="application"
+                    aria-label="Interactive map for selecting event location"
+                    tabIndex={0}
                 />
                 {isDraggingCircle && (
                     <div className="absolute top-2 left-2 bg-teal-600 text-white px-2 py-1 rounded text-xs font-medium z-10">
@@ -392,6 +511,7 @@ const MapPicker: React.FC<MapPickerProps> = ({ initialLocation, onLocationChange
 
             {/* Instructions */}
             <div className="text-xs text-gray-500 space-y-1">
+                <p>• Click anywhere on the map to set the event location</p>
                 <p>• Drag the pin or circle to move the event location</p>
                 <p>• Drag the small circle on the edge to resize the coverage area</p>
                 <p>• Use the slider above to precisely adjust the radius</p>
