@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import App from '../App';
 
 // Mock Supabase client to immediately provide a session
@@ -33,7 +34,7 @@ describe('App events error handling', () => {
 
     // Error banner should appear after failed fetch
     const alert = await screen.findByRole('alert');
-    expect(alert).toHaveTextContent(/couldn’t load events/i);
+    expect(alert).toHaveTextContent(/We couldn't load events/i);
 
     // Click retry
     const retry = screen.getByRole('button', { name: /retry/i });
