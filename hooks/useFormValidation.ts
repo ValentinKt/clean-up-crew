@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Event, Location } from '../types';
 import { generateEventDescription, suggestEquipment } from '../services/geminiService';
 
@@ -59,29 +59,34 @@ export const useFormValidation = ({ initialData, existingEvent }: UseFormValidat
     });
 
     // Update individual form fields
-    const updateField = <K extends keyof FormData>(field: K, value: FormData[K]) => {
+    const updateField = useCallback(<K extends keyof FormData>(field: K, value: FormData[K]) => {
         setFormData(prev => ({ ...prev, [field]: value }));
-    };
+    }, []);
 
     // Equipment management functions
-    const handleEquipmentChange = (index: number, value: string) => {
-        const newList = [...formData.equipmentList];
-        newList[index] = value;
-        updateField('equipmentList', newList);
-    };
+    const handleEquipmentChange = useCallback((index: number, value: string) => {
+        setFormData(prev => {
+            const newList = [...prev.equipmentList];
+            newList[index] = value;
+            return { ...prev, equipmentList: newList };
+        });
+    }, []);
 
-    const addEquipmentField = () => {
-        updateField('equipmentList', [...formData.equipmentList, '']);
-    };
+    const addEquipmentField = useCallback(() => {
+        setFormData(prev => ({ ...prev, equipmentList: [...prev.equipmentList, ''] }));
+    }, []);
 
-    const removeEquipmentField = (index: number) => {
-        if (formData.equipmentList.length > 1) {
-            updateField('equipmentList', formData.equipmentList.filter((_, i) => i !== index));
-        }
-    };
+    const removeEquipmentField = useCallback((index: number) => {
+        setFormData(prev => {
+            if (prev.equipmentList.length > 1) {
+                return { ...prev, equipmentList: prev.equipmentList.filter((_, i) => i !== index) };
+            }
+            return prev;
+        });
+    }, []);
 
     // AI-powered features
-    const handleGenerateDescription = async () => {
+    const handleGenerateDescription = useCallback(async () => {
         if (!formData.title) {
             alert("Please enter a title first to generate a description.");
             return;
@@ -90,16 +95,16 @@ export const useFormValidation = ({ initialData, existingEvent }: UseFormValidat
         setValidationState(prev => ({ ...prev, isGenerating: true }));
         try {
             const aiDescription = await generateEventDescription(formData.title);
-            updateField('description', aiDescription);
+            setFormData(prev => ({ ...prev, description: aiDescription }));
         } catch (error) {
             console.error('Failed to generate description:', error);
             alert('Failed to generate description. Please try again.');
         } finally {
             setValidationState(prev => ({ ...prev, isGenerating: false }));
         }
-    };
+    }, [formData.title]);
 
-    const handleSuggestItems = async () => {
+    const handleSuggestItems = useCallback(async () => {
         if (!formData.title && !formData.description) {
             alert("Please provide a title or description to get suggestions.");
             return;
@@ -128,30 +133,32 @@ export const useFormValidation = ({ initialData, existingEvent }: UseFormValidat
         } finally {
             setValidationState(prev => ({ ...prev, isLoadingSuggestions: false }));
         }
-    };
+    }, [formData.title, formData.description, formData.equipmentList]);
 
-    const addSuggestionToEquipment = (suggestion: string) => {
-        const emptyIndex = formData.equipmentList.findIndex(i => i === '');
-        if (emptyIndex !== -1) {
-            const newList = [...formData.equipmentList];
-            newList[emptyIndex] = suggestion;
-            updateField('equipmentList', newList);
-        } else {
-            updateField('equipmentList', [...formData.equipmentList, suggestion]);
-        }
+    const addSuggestionToEquipment = useCallback((suggestion: string) => {
+        setFormData(prev => {
+            const emptyIndex = prev.equipmentList.findIndex(i => i === '');
+            if (emptyIndex !== -1) {
+                const newList = [...prev.equipmentList];
+                newList[emptyIndex] = suggestion;
+                return { ...prev, equipmentList: newList };
+            } else {
+                return { ...prev, equipmentList: [...prev.equipmentList, suggestion] };
+            }
+        });
         
         setValidationState(prev => ({
             ...prev,
             suggestions: prev.suggestions.filter(s => s !== suggestion)
         }));
-    };
+    }, []);
 
     // Location handling
-    const handleLocationChange = (newLocation: Location & { radius: number }, newMapImageUrl: string) => {
+    const handleLocationChange = useCallback((newLocation: Location & { radius: number }, newMapImageUrl: string) => {
         updateField('location', newLocation);
         updateField('mapImageUrl', newMapImageUrl);
         updateField('radius', newLocation.radius / 1000); // Convert meters to kilometers for display
-    };
+    }, [updateField]);
 
     // Form validation
     const validateForm = (): { isValid: boolean; errors: string[] } => {

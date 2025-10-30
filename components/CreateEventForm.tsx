@@ -49,17 +49,21 @@ const CreateEventForm: React.FC<CreateEventFormProps> = ({ currentUser, onEventC
         }
     }, [updateField]);
 
-    // Save draft to localStorage whenever form data changes
+    // Save draft to localStorage whenever form data changes (debounced to prevent cursor issues)
     useEffect(() => {
-        const draft = {
-            title: formData.title,
-            description: formData.description,
-            date: formData.date,
-            time: formData.time,
-            radius: formData.radius,
-            equipmentList: formData.equipmentList,
-        };
-        localStorage.setItem('eventDraft', JSON.stringify(draft));
+        const timeoutId = setTimeout(() => {
+            const draft = {
+                title: formData.title,
+                description: formData.description,
+                date: formData.date,
+                time: formData.time,
+                radius: formData.radius,
+                equipmentList: formData.equipmentList,
+            };
+            localStorage.setItem('eventDraft', JSON.stringify(draft));
+        }, 300); // 300ms debounce
+
+        return () => clearTimeout(timeoutId);
     }, [formData.title, formData.description, formData.date, formData.time, formData.radius, formData.equipmentList]);
 
     const handleSubmit = async (e: React.FormEvent) => {
