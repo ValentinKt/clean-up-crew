@@ -87,7 +87,8 @@ describe('EventService', () => {
     it('handles errors gracefully', async () => {
        vi.mocked(supabase.rpc).mockRejectedValue(new Error('Database error'));
 
-       await expect(eventService.getEventsForUser('user-1')).rejects.toThrow();
+       const result = await eventService.getEventsForUser('user-1');
+       expect(result).toEqual([]);
      });
   });
 

@@ -139,24 +139,20 @@ describe('Edge Case Tests', () => {
         description: 'Test Description',
         location: { address: 'Test Location', lat: 40.7128, lng: -74.0060 },
         mapImageUrl: 'test-map.jpg',
-        date: '2024-01-01',
-        time: '10:00',
+        date: '2024-01-01T10:00:00',
         radius: 5,
-        equipment: [],
-        organizerId: 'user-1'
-      });
+        equipment: []
+      }, mockUser);
 
       expect(mockCreateEvent).toHaveBeenCalledWith({
         title: 'Test Event',
         description: 'Test Description',
         location: { address: 'Test Location', lat: 40.7128, lng: -74.0060 },
         mapImageUrl: 'test-map.jpg',
-        date: '2024-01-01',
-        time: '10:00',
+        date: '2024-01-01T10:00:00',
         radius: 5,
-        equipment: [],
-        organizerId: 'user-1'
-      });
+        equipment: []
+      }, mockUser);
     });
   });
 });
